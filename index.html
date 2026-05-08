@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Будни балбесов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0e1621;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #0e1621;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #17212b;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #0e1621;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .chat-header-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .chat-header-info h1 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .chat-header-info p {
+            font-size: 13px;
+            color: #6c7883;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%2317212b"/></svg>');
+            background-size: 20px 20px;
+        }
+
+        .message {
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+
+        .message-author {
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #6c7883;
+        }
+
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.sent .message-bubble {
+            background: #2b5278;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received .message-bubble {
+            background: #182533;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.system {
+            align-self: center;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .message.system .message-bubble {
+            background: transparent;
+            color: #6c7883;
+            font-size: 13px;
+            padding: 4px 8px;
+        }
+
+        .choice-container {
+            background: #17212b;
+            padding: 15px;
+            border-top: 1px solid #0e1621;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .choice-title {
+            font-size: 14px;
+            color: #6c7883;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .choice-btn {
+            background: #2b5278;
+            color: #fff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: #36648f;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            padding: 8px 12px;
+            background: #182533;
+            border-radius: 12px;
+            max-width: fit-content;
+            margin-bottom: 8px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #6c7883;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-4px);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Character colors */
+        .author-Тёма { color: #64b5f6; }
+        .author-Ваня { color: #81c784; }
+        .author-Лиза { color: #f48fb1; }
+        .author-Кокос { color: #ffb74d; }
+        .author-Андрей { color: #ba68c8; }
+        .author-Влад { color: #4db6ac; }
+        .author-Вита { color: #ff8a65; }
+
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-header-avatar">ББ</div>
+            <div class="chat-header-info">
+                <h1>Будни балбесов</h1>
+                <p id="header-status">7 участников</p>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be added here -->
+        </div>
+
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+
+        <div class="choice-container" id="choice-container">
+            <div class="choice-title" id="choice-title">Выберите действие:</div>
+            <div class="choices" id="choices">
+                <!-- Choices will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const characters = {
+            'Тёма': { color: '#64b5f6', isPlayer: true },
+            'Ваня': { color: '#81c784' },
+            'Лиза': { color: '#f48fb1' },
+            'Кокос': { color: '#ffb74d' },
+            'Андрей': { color: '#ba68c8' },
+            'Влад': { color: '#4db6ac' },
+            'Вита': { color: '#ff8a65' }
+        };
+
+        let currentScene = 0;
+        let messageIndex = 0;
+
+        const scenes = [
+            {
+                // Scene 1: Поездка на дачу
+                messages: [
+                    { author: 'Тёма', text: 'Ну чё ребятки, через час выезжаем? Я уже шкодик заправил', time: '14:23' },
+                    { author: 'Ваня', text: 'газ! Я лизку забрал, щас к тебе рулим', time: '14:24' },
+                    { author: 'Лиза', text: 'Привет всем! 😊 Ребятки, а что с едой берём?', time: '14:25' },
+                    { author: 'Кокос', text: 'Бля, да давайте уже шашлыков нормальных, а не эту хуйню как в прошлый раз', time: '14:26' },
+                    { author: 'Андрей', text: 'Коллеги, я проанализировал прогноз погоды. Вероятность осадков составляет всего 15%, так что условия оптимальные для загородного мероприятия. Также я захватил портативную колонку с качественным звуком.', time: '14:28' },
+                    { author: 'Влад', text: 'Я с витой буду через 20 мин у темы', time: '14:29' },
+                    { author: 'Вита', text: 'Оки, ребятишки! Как делишки? 🍷', time: '14:30' },
+                    { author: 'Тёма', text: 'Вань, ты соню опять вспомнил? 😂', time: '14:31' },
+                    { author: 'Ваня', text: 'нихт! бля тема ну ты чё опять про эту шлюху с розовыми волосами🤬', time: '14:32' },
+                    { author: 'Лиза', text: 'Ха ха, Ванечка, не обижайся 😄', time: '14:33' },
+                    { author: 'Кокос', text: 'Нахуй серьезно, это было легендарно 🔥', time: '14:34' },
+                    { author: 'Андрей', text: 'Кстати, о легендах. Помните тот случай с волейболом? Андрей профессиональный волейболист, единственный человек, который умудрился сломать ногу в своей первой игре.', time: '14:36' },
+                    { author: 'Кокос', text: 'АХАХАХ бля андрюх ты пиздец 😂😂😂', time: '14:37' },
+                    { author: 'Ваня', text: 'газ! да он там один мяч ударил и всё, нога хрусть', time: '14:38' },
+                    { author: 'Тёма', text: 'Ладно хватит ржать, собираемся. У меня мангал готов, мясо замариновано', time: '14:40' }
+                ],
+                choices: [
+                    { text: 'Погнали уже, жду всех!', nextScene: 1 },
+                    { text: 'Проверю ещё раз всё ли взял', nextScene: 1 }
+                ]
+            },
+            {
+                // Scene 2: Прибытие на дачу
+                messages: [
+                    { author: 'Система', text: 'Вы прибыли на дачу', time: '16:45' },
+                    { author: 'Лиза', text: 'Ребятки, какая красота! 😍 Воздух какой!', time: '16:46' },
+                    { author: 'Ваня', text: 'газ! тема у тебя тут пиздец как хорошо', time: '16:47' },
+                    { author: 'Кокос', text: 'Ну наконец-то! Бля, сколько можно было ехать', time: '16:48' },
+                    { author: 'Вита', text: 'Оки, где будем тусить? 🎉', time: '16:49' },
+                    { author: 'Андрей', text: 'Локация действительно превосходная. Оптимальное соотношение удалённости от города и доступности инфраструктуры.', time: '16:50' },
+                    { author: 'Влад', text: 'Я отойду на минутку, щас вернусь', time: '16:52' },
+                    { author: 'Вита', text: 'Хорошо, окси 👌', time: '16:52' },
+                    { author: 'Тёма', text: 'Вань, помоги мангал поставить', time: '16:53' },
+                    { author: 'Ваня', text: 'газ! щас делаю', time: '16:54' },
+                    { author: 'Лиза', text: 'Ребят, может пока Влад не вернулся, стол накроем?', time: '16:55' },
+                    { author: 'Кокос', text: 'Давайте, бля, я помогу', time: '16:56' }
+                ],
+                choices: [
+                    { text: 'Помочь Ване с мангалом', nextScene: 2 },
+                    { text: 'Накрыть стол с девочками', nextScene: 2 }
+                ]
+            },
+            {
+                // Scene 3: Пропажа Влада
+                messages: [
+                    { author: 'Система', text: 'Прошло 30 минут', time: '17:25' },
+                    { author: 'Вита', text: 'Ребятишки, а где Влад? 🤔', time: '17:25' },
+                    { author: 'Лиза', text: 'И правда, он же сказал на минутку отойти...', time: '17:26' },
+                    { author: 'Тёма', text: 'Влад? Ты где?', time: '17:27' },
+                    { author: 'Ваня', text: 'бля может в туалет пошёл?', time: '17:28' },
+                    { author: 'Кокос', text: 'Нахуй серьезно, уже пол часа прошло', time: '17:29' },
+                    { author: 'Вита', text: 'Он не отвечает на звонки... 😟', time: '17:30' },
+                    { author: 'Андрей', text: 'Это статистически маловероятно. Среднее время отсутствия в подобных ситуациях составляет 5-7 минут. Превышение этого времени в 4+ раза указывает на аномалию.', time: '17:31' },
+                    { author: 'Тёма', text: 'Влад, бл*дь, ты где?! Отзовись!', time: '17:32' },
+                    { author: 'Система', text: 'Влад не отвечает', time: '17:33' },
+                    { author: 'Лиза', text: 'Ребятки, мне страшно... Может что-то случилось?', time: '17:34' },
+                    { author: 'Вита', text: 'Нужно его искать! 😰', time: '17:35' },
+                    { author: 'Кокос', text: 'Бля, ну куда он мог уйти то нахуй', time: '17:36' },
+                    { author: 'Ваня', text: 'газ! может в лесу заблудился?', time: '17:37' }
+                ],
+                choices: [
+                    { text: 'Разделиться и искать Влада', nextScene: 3 },
+                    { text: 'Обыскать территорию вместе', nextScene: 3 },
+                    { text: 'Позвонить в полицию', nextScene: 3 }
+                ]
+            },
+            {
+                // Scene 4: Поиск
+                messages: [
+                    { author: 'Тёма', text: 'Так, тихо все! Надо решить что делать', time: '17:38' },
+                    { author: 'Андрей', text: 'Предлагаю систематизировать поиск. Разделение на группы увеличит эффективность на 67%.', time: '17:39' },
+                    { author: 'Вита', text: 'Но я боюсь одна оставаться... 😢', time: '17:40' },
+                    { author: 'Лиза', text: 'Ребятки, давайте не паниковать. Всё будет хорошо!', time: '17:41' },
+                    { author: 'Кокос', text: 'Бля, да куда он делся то нахуй серьезно', time: '17:42' },
+                    { author: 'Ваня', text: 'газ! может он просто бухать где-то лег?', time: '17:43' },
+                    { author: 'Тёма', text: 'Нет, Влад не такой. Что-то случилось', time: '17:44' }
+                ],
+                choices: [
+                    { text: 'Взять фонарь и пойти к старому сараю', nextScene: 4 },
+                    { text: 'Остаться с Вита и успокоить её', nextScene: 4 },
+                    { text: 'Обзвонить все службы', nextScene: 4 }
+                ]
+            },
+            {
+                // Scene 5: Важное решение
+                messages: [
+                    { author: 'Система', text: 'Наступает вечер', time: '19:00' },
+                    { author: 'Вита', text: 'Ребятишки, я совсем не знаю что делать... 😭', time: '19:01' },
+                    { author: 'Лиза', text: 'Виточка, всё будет хорошо, мы найдём Влада!', time: '19:02' },
+                    { author: 'Андрей', text: 'С наступлением темноты вероятность благополучного исхода снижается на 23% каждые 30 минут. Необходимо принять решение.', time: '19:03' },
+                    { author: 'Кокос', text: 'Бля, может уже ментов вызвать нахуй?', time: '19:04' },
+                    { author: 'Ваня', text: 'газ! или самим ещё поискать?', time: '19:05' },
+                    { author: 'Тёма', text: 'Блин, надо решать сейчас...', time: '19:06' }
+                ],
+                choices: [
+                    { text: 'Вызвать полицию и МЧС', nextScene: 5 },
+                    { text: 'Продолжить поиски своими силами', nextScene: 5 },
+                    { text: 'Попросить помощи у соседей', nextScene: 5 }
+                ]
+            },
+            {
+                // Scene 6: Финал (будет продолжение)
+                messages: [
+                    { author: 'Система', text: 'Решение принято...', time: '19:10' },
+                    { author: 'Тёма', text: 'Так, делаем как решили. Главное не паниковать!', time: '19:11' },
+                    { author: 'Лиза', text: 'Ребятки, вы лучшие! 💪', time: '19:12' },
+                    { author: 'Ваня', text: 'газ! найдём нашего влада!', time: '19:13' },
+                    { author: 'Вита', text: 'Спасибо вам, ребятишки... 🙏', time: '19:14' },
+                    { author: 'Кокос', text: 'Бля, главное чтоб живой был нахуй', time: '19:15' },
+                    { author: 'Андрей', text: 'Оптимистичный прогноз: 78% вероятности благоприятного исхода при текущем плане действий.', time: '19:16' },
+                    { author: 'Тёма', text: 'Всё будет хорошо. Дружба важнее всего!', time: '19:17' }
+                ],
+                choices: [
+                    { text: 'Начать заново', nextScene: 0 }
+                ]
+            }
+        ];
+
+        function getTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + 
+                   now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function addMessage(author, text, time) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            
+            if (author === 'Система') {
+                messageDiv.className = 'message system';
+                messageDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+            } else {
+                const isPlayer = characters[author]?.isPlayer;
+                messageDiv.className = `message ${isPlayer ? 'sent' : 'received'}`;
+                
+                const authorColor = characters[author]?.color || '#fff';
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author" style="color: ${authorColor}">${author}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-bubble">${text}</div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typing-indicator').style.display = 'flex';
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typing-indicator').style.display = 'none';
+        }
+
+        function showChoices(choices) {
+            const choicesContainer = document.getElementById('choices');
+            const choiceTitle = document.getElementById('choice-title');
+            
+            choicesContainer.innerHTML = '';
+            
+            if (choices && choices.length > 0) {
+                choiceTitle.textContent = 'Выберите действие:';
+                choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.textContent = choice.text;
+                    btn.onclick = () => makeChoice(choice.nextScene);
+                    choicesContainer.appendChild(btn);
+                });
+                document.getElementById('choice-container').classList.remove('hidden');
+            } else {
+                document.getElementById('choice-container').classList.add('hidden');
+            }
+        }
+
+        async function playScene(sceneIndex) {
+            const scene = scenes[sceneIndex];
+            if (!scene) return;
+
+            // Hide choices while playing scene
+            document.getElementById('choice-container').classList.add('hidden');
+
+            for (let i = 0; i < scene.messages.length; i++) {
+                const msg = scene.messages[i];
+                
+                if (msg.author !== 'Система') {
+                    showTyping();
+                    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+                    hideTyping();
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                addMessage(msg.author, msg.text, msg.time);
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // Show choices after scene completes
+            if (scene.choices) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                showChoices(scene.choices);
+            }
+        }
+
+        function makeChoice(nextSceneIndex) {
+            if (nextSceneIndex === 0) {
+                // Restart game
+                document.getElementById('chat-messages').innerHTML = '';
+                currentScene = 0;
+                playScene(0);
+            } else {
+                currentScene = nextSceneIndex;
+                playScene(nextSceneIndex);
+            }
+        }
+
+        // Start the game
+        window.onload = () => {
+            playScene(0);
+        };
+    </script>
+</body>
+</html>
